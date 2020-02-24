@@ -20,21 +20,28 @@ steps:
 # Mesure each of the ILB services separately, this will provide insight on how long programming
 # ILB takes as a function of number of backends.
 - measurements:
-  - Identifier: ServiceCreationLatencyLarge
-    Method: ServiceCreationLatency
+  #- Identifier: ServiceCreationLatencyLarge
+  #  Method: ServiceCreationLatency
+  #  Params:
+  #    action: start
+  #    labelSelector: size = {{$LARGE_BACKEND_LABEL}}
+  #- Identifier: ServiceCreationLatencyMedium
+  #  Method: ServiceCreationLatency
+  #  Params:
+  #    action: start
+  #    labelSelector: size = {{$MEDIUM_BACKEND_LABEL}}
+  - Identifier: CreateServices
+    Method: GatherMeasurements
     Params:
-      action: start
-      labelSelector: size = {{$LARGE_BACKEND_LABEL}}
-  - Identifier: ServiceCreationLatencyMedium
-    Method: ServiceCreationLatency
-    Params:
-      action: start
-      labelSelector: size = {{$MEDIUM_BACKEND_LABEL}}
-  - Identifier: ServiceCreationLatencySmall
-    Method: ServiceCreationLatency
-    Params:
+      Identifiers: ServiceCreationLatencyMedium, ServiceCreationLatencySmall
+      Method: ServiceCreationLatency
       action: start
       labelSelector: size = {{$SMALL_BACKEND_LABEL}}
+  #- Identifier: ServiceCreationLatencySmall
+  #  Method: ServiceCreationLatency
+  #  Params:
+  #    action: start
+  #    labelSelector: size = {{$SMALL_BACKEND_LABEL}}
   - Identifier: WaitForRunningDeployments
     Method: WaitForControlledPodsRunning
     Params:

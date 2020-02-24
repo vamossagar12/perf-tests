@@ -23,7 +23,7 @@ import (
 	"k8s.io/perf-tests/clusterloader2/pkg/framework"
 )
 
-// MeasurementManager manages all measurement executions.
+// measurementManager manages all measurement executions.
 type measurementManager struct {
 	clusterFramework    *framework.Framework
 	clusterLoaderConfig *config.ClusterLoaderConfig
@@ -41,9 +41,21 @@ type MeasurementManager interface {
 	Execute(methodName string, identifier string, params map[string]interface{}) error
 	GetSummaries() []Summary
 	Dispose()
+	GetMeasurementInstance(methodName string, identifier string) (Measurement, error)
 }
 
 // CreateMeasurementManager creates new instance of measurementManager.
+func (mm *measurementManager) CreateMeasurementManager(clusterFramework, prometheusFramework *framework.Framework, templateProvider *config.TemplateProvider, config *config.ClusterLoaderConfig) *measurementManager {
+	return &measurementManager{
+		clusterFramework:    clusterFramework,
+		clusterLoaderConfig: config,
+		prometheusFramework: prometheusFramework,
+		templateProvider:    templateProvider,
+		measurements:        make(map[string]map[string]Measurement),
+		summaries:           make([]Summary, 0),
+	}
+}
+
 func CreateMeasurementManager(clusterFramework, prometheusFramework *framework.Framework, templateProvider *config.TemplateProvider, config *config.ClusterLoaderConfig) MeasurementManager {
 	return &measurementManager{
 		clusterFramework:    clusterFramework,
@@ -57,7 +69,7 @@ func CreateMeasurementManager(clusterFramework, prometheusFramework *framework.F
 
 // Execute executes measurement based on provided identifier, methodName and params.
 func (mm *measurementManager) Execute(methodName string, identifier string, params map[string]interface{}) error {
-	measurementInstance, err := mm.getMeasurementInstance(methodName, identifier)
+	measurementInstance, err := mm.GetMeasurementInstance(methodName, identifier)
 	if err != nil {
 		return err
 	}
@@ -69,6 +81,7 @@ func (mm *measurementManager) Execute(methodName string, identifier string, para
 		Identifier:          identifier,
 		CloudProvider:       mm.clusterLoaderConfig.ClusterConfig.Provider,
 		ClusterLoaderConfig: mm.clusterLoaderConfig,
+		MeasurementManager:  mm,
 	}
 	summaries, err := measurementInstance.Execute(config)
 	mm.summaries = append(mm.summaries, summaries...)
@@ -89,7 +102,7 @@ func (mm *measurementManager) Dispose() {
 	}
 }
 
-func (mm *measurementManager) getMeasurementInstance(methodName string, identifier string) (Measurement, error) {
+func (mm *measurementManager) GetMeasurementInstance(methodName string, identifier string) (Measurement, error) {
 	mm.lock.Lock()
 	defer mm.lock.Unlock()
 	if _, exists := mm.measurements[methodName]; !exists {
