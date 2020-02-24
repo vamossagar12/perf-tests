@@ -51,8 +51,8 @@ func createSimpleContext(c *config.ClusterLoaderConfig, f, p *framework.Framewor
 		templateProvider:    templateProvider,
 		tuningSetFactory:    tuningset.NewTuningSetFactory(),
 		//measurementManager:  measurement.CreateMeasurementManager(f, p, templateProvider, c),
-		measurementManager:  measurement.CreateMeasurementManager(f, p, templateProvider, c),
-		chaosMonkey:         chaos.NewMonkey(f.GetClientSets().GetClient(), c.ClusterConfig.Provider),
+		measurementManager: measurement.CreateMeasurementManager(f, p, templateProvider, c),
+		chaosMonkey:        chaos.NewMonkey(f.GetClientSets().GetClient(), c.ClusterConfig.Provider),
 	}
 }
 

@@ -36,12 +36,11 @@ func init() {
 	}
 }
 
-
 func createGatherMeasurementsMeasurement() measurement.Measurement {
 	return &gatherMetricsMeasurement{}
 }
 
-type gatherMetricsMeasurement struct {}
+type gatherMetricsMeasurement struct{}
 
 func (g gatherMetricsMeasurement) Execute(config *measurement.MeasurementConfig) ([]measurement.Summary, error) {
 	identifiersFromConfig, err := util.GetString(config.Params, "Identifiers")
@@ -60,7 +59,7 @@ func (g gatherMetricsMeasurement) Execute(config *measurement.MeasurementConfig)
 	for i := range identifiers {
 		index := i
 		measurementInstance, err := config.MeasurementManager.GetMeasurementInstance(methodName, identifiers[index])
-		if err != nil{
+		if err != nil {
 			errList.Append(fmt.Errorf("could not fetch measurement using identifier %s - method %s error: %v", identifiers[index], methodName, err))
 			continue
 		}
