@@ -56,17 +56,6 @@ func (mm *measurementManager) CreateMeasurementManager(clusterFramework, prometh
 	}
 }
 
-func CreateMeasurementManager(clusterFramework, prometheusFramework *framework.Framework, templateProvider *config.TemplateProvider, config *config.ClusterLoaderConfig) MeasurementManager {
-	return &measurementManager{
-		clusterFramework:    clusterFramework,
-		clusterLoaderConfig: config,
-		prometheusFramework: prometheusFramework,
-		templateProvider:    templateProvider,
-		measurements:        make(map[string]map[string]Measurement),
-		summaries:           make([]Summary, 0),
-	}
-}
-
 // Execute executes measurement based on provided identifier, methodName and params.
 func (mm *measurementManager) Execute(methodName string, identifier string, params map[string]interface{}) error {
 	measurementInstance, err := mm.GetMeasurementInstance(methodName, identifier)
