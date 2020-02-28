@@ -45,7 +45,7 @@ type MeasurementManager interface {
 }
 
 // CreateMeasurementManager creates new instance of measurementManager.
-func (mm *measurementManager) CreateMeasurementManager(clusterFramework, prometheusFramework *framework.Framework, templateProvider *config.TemplateProvider, config *config.ClusterLoaderConfig) *measurementManager {
+func CreateMeasurementManager(clusterFramework, prometheusFramework *framework.Framework, templateProvider *config.TemplateProvider, config *config.ClusterLoaderConfig) MeasurementManager {
 	return &measurementManager{
 		clusterFramework:    clusterFramework,
 		clusterLoaderConfig: config,

@@ -20,21 +20,33 @@ steps:
 # Mesure each of the ILB services separately, this will provide insight on how long programming
 # ILB takes as a function of number of backends.
 - measurements:
-  - Identifier: ServiceCreationLatencyLarge
-    Method: ServiceCreationLatency
+  #- Identifier: ServiceCreationLatencyLarge
+  #  Method: ServiceCreationLatency
+  #  Params:
+  #    action: start
+  #    labelSelector: size = {{$LARGE_BACKEND_LABEL}}
+  #- Identifier: ServiceCreationLatencyMedium
+  #  Method: ServiceCreationLatency
+  #  Params:
+  #    action: start
+  #    labelSelector: size = {{$MEDIUM_BACKEND_LABEL}}
+  - Identifier: CreateServices
+    Method: GatherMeasurements
     Params:
+      Identifiers:
+        ServiceCreationLatencyLarge:
+          labelSelector: size = {{$LARGE_BACKEND_LABEL}}
+        ServiceCreationLatencyMedium:
+          labelSelector: size = {{$MEDIUM_BACKEND_LABEL}}
+        ServiceCreationLatencySmall:
+          labelSelector: size = {{$SMALL_BACKEND_LABEL}}
+      Method: ServiceCreationLatency
       action: start
-      labelSelector: size = {{$LARGE_BACKEND_LABEL}}
-  - Identifier: ServiceCreationLatencyMedium
-    Method: ServiceCreationLatency
-    Params:
-      action: start
-      labelSelector: size = {{$MEDIUM_BACKEND_LABEL}}
-  - Identifier: ServiceCreationLatencySmall
-    Method: ServiceCreationLatency
-    Params:
-      action: start
-      labelSelector: size = {{$SMALL_BACKEND_LABEL}}
+  #- Identifier: ServiceCreationLatencySmall
+  #  Method: ServiceCreationLatency
+  #  Params:
+  #    action: start
+  #    labelSelector: size = {{$SMALL_BACKEND_LABEL}}
   - Identifier: WaitForRunningDeployments
     Method: WaitForControlledPodsRunning
     Params:
@@ -92,17 +104,27 @@ steps:
       templateFillMap:
         NumReplicas: {{$SMALL_BACKEND_SIZE}}
 - measurements:
-  - Identifier: ServiceCreationLatencyLarge
-    Method: ServiceCreationLatency
+  #- Identifier: ServiceCreationLatencyLarge
+  #  Method: ServiceCreationLatency
+  #  Params:
+  #    action: waitForReady
+  #- Identifier: ServiceCreationLatencyMedium
+  #  Method: ServiceCreationLatency
+  #  Params:
+  #    action: waitForReady
+  #- Identifier: ServiceCreationLatencySmall
+  #  Method: ServiceCreationLatency
+  #  Params:
+  #    action: waitForReady
+
+  - Identifier: WaitForServices
+    Method: GatherMeasurements
     Params:
-      action: waitForReady
-  - Identifier: ServiceCreationLatencyMedium
-    Method: ServiceCreationLatency
-    Params:
-      action: waitForReady
-  - Identifier: ServiceCreationLatencySmall
-    Method: ServiceCreationLatency
-    Params:
+      Identifiers:
+       ServiceCreationLatencyLarge:
+       ServiceCreationLatencyMedium:
+       ServiceCreationLatencySmall:
+      Method: ServiceCreationLatency
       action: waitForReady
   - Identifier: WaitForRunningDeployments
     Method: WaitForControlledPodsRunning
@@ -142,15 +164,24 @@ steps:
     - basename: small-backends-dep
       objectTemplatePath: dep.yaml
 - measurements:
-  - Identifier: ServiceCreationLatencyLarge
-    Method: ServiceCreationLatency
+  #- Identifier: ServiceCreationLatencyLarge
+  #  Method: ServiceCreationLatency
+  #  Params:
+  #    action: gather
+  #- Identifier: ServiceCreationLatencyMedium
+  #  Method: ServiceCreationLatency
+  #  Params:
+  #    action: gather
+  #- Identifier: ServiceCreationLatencySmall
+  #  Method: ServiceCreationLatency
+  #  Params:
+  #    action: gather
+  - Identifier: GatherServices
+    Method: GatherMeasurements
     Params:
-      action: gather
-  - Identifier: ServiceCreationLatencyMedium
-    Method: ServiceCreationLatency
-    Params:
-      action: gather
-  - Identifier: ServiceCreationLatencySmall
-    Method: ServiceCreationLatency
-    Params:
+      Identifiers:
+        ServiceCreationLatencyLarge:
+        ServiceCreationLatencyMedium:
+        ServiceCreationLatencySmall:
+      Method: ServiceCreationLatency
       action: gather

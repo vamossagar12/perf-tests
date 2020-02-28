@@ -43,30 +43,70 @@ func createGatherMeasurementsMeasurement() measurement.Measurement {
 type gatherMetricsMeasurement struct{}
 
 func (g gatherMetricsMeasurement) Execute(config *measurement.MeasurementConfig) ([]measurement.Summary, error) {
-	identifiersFromConfig, err := util.GetString(config.Params, "Identifiers")
-	if err != nil {
-		return nil, err
-	}
-	identifiers := strings.Split(strings.TrimSpace(identifiersFromConfig), ",")
+
+	// Assuming that Method config would be present only once and won't/shouldn't be overridden
+	errList := errors.NewErrorList()
 	methodName, err := util.GetString(config.Params, "Method")
 	if err != nil {
 		return nil, err
 	}
 
-	var wg wait.Group
-	errList := errors.NewErrorList()
+	identifiersWithConfig, err := util.GetMap(config.Params, "Identifiers")
+	if err != nil {
+		return nil, err
+	}
 
-	for i := range identifiers {
-		index := i
-		measurementInstance, err := config.MeasurementManager.GetMeasurementInstance(methodName, identifiers[index])
+	var wg wait.Group
+
+	for identifier:= range identifiersWithConfig {
+		measurementInstance, err := config.MeasurementManager.GetMeasurementInstance(methodName, identifier)
+
 		if err != nil {
-			errList.Append(fmt.Errorf("could not fetch measurement using identifier %s - method %s error: %v", identifiers[index], methodName, err))
+			errList.Append(fmt.Errorf("could not fetch measurement using identifier %s - method %s error: %v", identifier, methodName, err))
 			continue
 		}
-		wg.Start(func() {
-			_, err := measurementInstance.Execute(config)
+		// A new params map is being created since within a measurement which we try to wrap,
+		// there might still be cases where the individual params may be measurement specific
+		measurementParams := map[string]interface{}{}
+
+		// We will first add the identifier specific configs if there are defined
+		if identifiersWithConfig[identifier] != nil {
+			for configKey, configVal:= range identifiersWithConfig[identifier].(map[string]interface{}){
+				measurementParams[configKey] = strings.TrimSpace(configVal.(string))
+			}
+		}
+
+		// These are the common configs defined outside the Identifiers block, which apply to all the Identifiers.
+		// Note that we are processing the common config multiple tine for each identifier which is duplicated work
+		// but since it's a small set of configs so for brevity's sake, keeping it this way for now.
+		for k := range config.Params{
+			if k == "Identifiers" || k == "Method" {
+				continue
+			}
+			configParam, err := util.GetString(config.Params, k)
 			if err != nil {
-				errList.Append(fmt.Errorf("measurement call %s - %s error: %v", methodName, identifiers[index], err))
+				errList.Append(fmt.Errorf("error fetching param for identifier %s - method %s - key %s error: %v", identifier, methodName, k, err))
+				continue
+			}
+			measurementParams[k] = strings.TrimSpace(configParam)
+		}
+
+		wrappedMeasurementConfig := measurement.MeasurementConfig{
+			ClusterFramework:    config.ClusterFramework,
+			PrometheusFramework: config.PrometheusFramework,
+			Params:              measurementParams,
+			TemplateProvider:    config.TemplateProvider,
+			Identifier:          identifier,
+			CloudProvider:       config.ClusterLoaderConfig.ClusterConfig.Provider,
+			ClusterLoaderConfig: config.ClusterLoaderConfig,
+			MeasurementManager:  config.MeasurementManager,
+		}
+
+		wg.Start(func() {
+			_, err := measurementInstance.Execute(&wrappedMeasurementConfig)
+			if err != nil {
+				errList.Append(fmt.Errorf("measurement call %s - %s error: %v", methodName, identifier, err))
+				klog.Infof("Errors size: %d", len(errList.Error()))
 			}
 		})
 	}
