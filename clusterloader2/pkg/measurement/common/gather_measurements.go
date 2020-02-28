@@ -58,7 +58,7 @@ func (g gatherMetricsMeasurement) Execute(config *measurement.MeasurementConfig)
 
 	var wg wait.Group
 
-	for identifier:= range identifiersWithConfig {
+	for identifier := range identifiersWithConfig {
 		measurementInstance, err := config.MeasurementManager.GetMeasurementInstance(methodName, identifier)
 
 		if err != nil {
@@ -71,7 +71,7 @@ func (g gatherMetricsMeasurement) Execute(config *measurement.MeasurementConfig)
 
 		// We will first add the identifier specific configs if there are defined
 		if identifiersWithConfig[identifier] != nil {
-			for configKey, configVal:= range identifiersWithConfig[identifier].(map[string]interface{}){
+			for configKey, configVal := range identifiersWithConfig[identifier].(map[string]interface{}) {
 				measurementParams[configKey] = strings.TrimSpace(configVal.(string))
 			}
 		}
@@ -79,7 +79,7 @@ func (g gatherMetricsMeasurement) Execute(config *measurement.MeasurementConfig)
 		// These are the common configs defined outside the Identifiers block, which apply to all the Identifiers.
 		// Note that we are processing the common config multiple tine for each identifier which is duplicated work
 		// but since it's a small set of configs so for brevity's sake, keeping it this way for now.
-		for k := range config.Params{
+		for k := range config.Params {
 			if k == "Identifiers" || k == "Method" {
 				continue
 			}
